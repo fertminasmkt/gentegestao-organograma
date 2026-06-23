@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organograma FertMinas</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff; --bg-secondary: #f8f9fa; --bg-tertiary: #f1f3f5;
+  --text-primary: #1a1a2e; --text-secondary: #64748b;
+  --border: rgba(0,0,0,0.10); --border-secondary: rgba(0,0,0,0.18);
+  --radius-md: 8px; --radius-lg: 12px;
+  --green: #2d7a3a; --green-light: #e8f5eb;
+  --red: #a02020; --red-light: #fbeaea;
+}
+#lock-screen {
+  position: fixed; inset: 0; background: #f1f3f5;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+.lock-card {
+  background: #fff; border: 0.5px solid rgba(0,0,0,0.12);
+  border-radius: 14px; padding: 2.5rem 2rem;
+  width: 360px; max-width: 94vw; text-align: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.lock-logo { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #2d7a3a; margin-bottom: 1.5rem; }
+.lock-icon { width: 48px; height: 48px; margin: 0 auto 1.25rem; background: #e8f5eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lock-icon svg { width: 22px; height: 22px; stroke: #2d7a3a; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lock-title { font-size: 17px; font-weight: 600; color: #1a1a2e; margin-bottom: 0.4rem; }
+.lock-sub { font-size: 13px; color: #64748b; margin-bottom: 1.75rem; line-height: 1.5; }
+.lock-input-wrap { position: relative; margin-bottom: 0.75rem; }
+.lock-input-wrap input {
+  width: 100%; padding: 10px 44px 10px 14px; font-size: 14px;
+  border: 0.5px solid rgba(0,0,0,0.18); border-radius: 8px;
+  background: #f8f9fa; color: #1a1a2e; outline: none;
+  transition: border-color 0.15s; letter-spacing: 0.05em;
+}
+.lock-input-wrap input:focus { border-color: #2d7a3a; background: #fff; }
+.lock-input-wrap input.error { border-color: #c0392b; background: #fff8f8; }
+.toggle-pw { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; color: #94a3b8; }
+.toggle-pw svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lock-btn { width: 100%; padding: 11px; background: #2d7a3a; color: #fff; font-size: 14px; font-weight: 500; border: none; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+.lock-btn:hover { background: #246132; }
+.lock-error { font-size: 12px; color: #c0392b; margin-top: 0.6rem; min-height: 18px; }
+#app { display: none; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; }
+header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0.875rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; }
+.logo { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+.logo span { font-size: 12px; color: var(--text-secondary); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 8px; }
+.toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.toolbar button { font-size: 12px; padding: 5px 12px; border: 0.5px solid var(--border-secondary); background: var(--bg); border-radius: 6px; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; gap: 5px; transition: background 0.12s; }
+.toolbar button:hover { background: var(--bg-secondary); }
+.toolbar button.active { background: var(--green-light); color: var(--green); border-color: var(--green); }
+#search-inp { font-size: 12px; padding: 5px 10px; border: 0.5px solid var(--border-secondary); border-radius: 6px; background: var(--bg); color: var(--text-primary); width: 160px; outline: none; }
+#search-inp:focus { border-color: var(--green); }
+.save-status { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+.save-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; transition: background 0.3s; }
+.save-dot.saving { background: #f59e0b; }
+.save-dot.saved { background: #2d7a3a; }
+.save-dot.error { background: #c0392b; }
+.stats-bar { display: flex; gap: 1rem; padding: 0.75rem 1.5rem; background: var(--bg); border-bottom: 0.5px solid var(--border); flex-wrap: wrap; align-items: center; }
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+.stat-lbl { font-size: 11px; color: var(--text-secondary); }
+#main { padding: 1.25rem 1.5rem; }
+#tree-container { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative; height: calc(100vh - 170px); }
+.zoom-controls { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 4px; z-index: 10; }
+.zoom-controls button { width: 30px; height: 30px; background: var(--bg); border: 0.5px solid var(--border-secondary); border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+.zoom-controls button:hover { background: var(--bg-secondary); }
+#org-svg { display: block; cursor: grab; }
+#org-svg:active { cursor: grabbing; }
+.node-box { cursor: pointer; }
+.node-box rect { transition: filter 0.12s; }
+.node-box:hover rect { filter: brightness(0.93); }
+#list-view { display: none; }
+.list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.list-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text-secondary); padding: 8px 12px; border-bottom: 0.5px solid var(--border); background: var(--bg-secondary); }
+.list-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); }
+.list-table tr:hover td { background: var(--bg-secondary); }
+.color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.edit-btn { font-size: 11px; padding: 3px 8px; border: 0.5px solid var(--border-secondary); background: var(--bg); border-radius: 4px; cursor: pointer; color: var(--text-secondary); }
+.edit-btn:hover { background: var(--bg-secondary); }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.modal { background: var(--bg); border: 0.5px solid var(--border-secondary); border-radius: var(--radius-lg); padding: 1.5rem; width: 360px; max-width: 94vw; }
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+.modal label { font-size: 11px; color: var(--text-secondary); display: block; margin: 10px 0 3px; }
+.modal input, .modal select { width: 100%; font-size: 13px; padding: 7px 10px; border: 0.5px solid var(--border-secondary); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); outline: none; }
+.modal input:focus, .modal select:focus { border-color: var(--green); background: var(--bg); }
+.modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+.btn { font-size: 13px; padding: 7px 16px; border-radius: 6px; cursor: pointer; border: none; }
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: #246132; }
+.btn-danger { background: var(--red-light); color: var(--red); border: 0.5px solid var(--red); }
+.btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 0.5px solid var(--border-secondary); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 0.75rem 1.5rem; background: var(--bg); border-bottom: 0.5px solid var(--border); }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; font-size: 13px; padding: 8px 18px; border-radius: 6px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 9000; }
+.toast.show { opacity: 1; }
+.add-node-btn { position: absolute; bottom: 12px; left: 12px; font-size: 12px; padding: 6px 14px; background: var(--green); color: #fff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; z-index: 10; }
+.add-node-btn:hover { background: #246132; }
+#loading-overlay { position: fixed; inset: 0; background: rgba(241,243,245,0.9); display: flex; align-items: center; justify-content: center; z-index: 500; flex-direction: column; gap: 12px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border-secondary); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading-overlay p { font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">FertMinas</div>
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="lock-title">Acesso restrito</div>
+    <div class="lock-sub">Organograma — Gente &amp; Gestão</div>
+    <div class="lock-input-wrap">
+      <input type="password" id="pw-input" placeholder="Senha de acesso" autocomplete="off">
+      <button class="toggle-pw" onclick="togglePw()" tabindex="-1">
+        <svg id="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+    <button class="lock-btn" onclick="tryUnlock()">Entrar</button>
+    <div class="lock-error" id="lock-err"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="loading-overlay" style="display:none">
+    <div class="spinner"></div>
+    <p id="loading-msg">Carregando organograma...</p>
+  </div>
+
+  <header>
+    <div class="logo">FertMinas <span>Gente &amp; Gestão</span></div>
+    <div class="toolbar">
+      <button id="btn-tree" class="active" onclick="switchView('tree')">Organograma</button>
+      <button id="btn-list" onclick="switchView('list')">Lista</button>
+      <input type="text" id="search-inp" placeholder="Buscar nome ou cargo..." oninput="doSearch(this.value)">
+      <button onclick="exportCSV()">Exportar CSV</button>
+      <div class="save-status">
+        <div class="save-dot" id="save-dot"></div>
+        <span id="save-label">Sincronizado</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-bar" id="stats-bar"></div>
+  <div class="legend" id="legend"></div>
+
+  <div id="main">
+    <div id="tree-view" style="position:relative;">
+      <div id="tree-container">
+        <svg id="org-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="zoom-controls">
+        <button onclick="zoomIn()">+</button>
+        <button onclick="zoomOut()">−</button>
+        <button onclick="zoomReset()">⊙</button>
+      </div>
+      <button class="add-node-btn" onclick="openAddModal()">+ Adicionar</button>
+    </div>
+    <div id="list-view">
+      <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:auto;max-height:calc(100vh - 200px);">
+        <table class="list-table">
+          <thead><tr><th>Área</th><th>Nome</th><th>Cargo</th><th>Reporta para</th><th></th></tr></thead>
+          <tbody id="list-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3 id="modal-title">Editar colaborador</h3>
+      <label>Nome</label><input id="m-nome" type="text">
+      <label>Cargo</label><input id="m-cargo" type="text">
+      <label>Reporta para</label><select id="m-parent"></select>
+      <label>Área / Cor</label><select id="m-color"></select>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="btn-delete" onclick="deleteNode()">Remover</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNode()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWXN7Z5JZGIeTbKQMo3zh_CMxCNJVWtJPGoACiD055SpYvhNqzoWyiL9-lTboXsbo9fA/exec';
+const HASH = 'a022503a0d5b2fca11520402d03fef4c6c26732a38e194563073861042ca2c89';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function tryUnlock() {
+  const pw = document.getElementById('pw-input').value;
+  if (await sha256(pw) === HASH) {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    await loadFromSheets();
+  } else {
+    const inp = document.getElementById('pw-input');
+    inp.classList.add('error');
+    document.getElementById('lock-err').textContent = 'Senha incorreta.';
+    inp.value = '';
+    setTimeout(()=>inp.classList.remove('error'), 1200);
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+function togglePw() {
+  const inp = document.getElementById('pw-input');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+let nodes = [], nextId = 1;
+const AREAS = {
+  slate:  { label:'Diretoria',   bg:'#edf0f4', border:'#3d4f6b', text:'#2a3545' },
+  blue:   { label:'Comercial',   bg:'#e6f0fb', border:'#1a5fa8', text:'#143f70' },
+  green:  { label:'Marketing',   bg:'#e8f5eb', border:'#2d7a3a', text:'#1e5227' },
+  teal:   { label:'Operações',   bg:'#e4f5f1', border:'#1a7a6a', text:'#125248' },
+  amber:  { label:'Financeiro',  bg:'#fef3e2', border:'#a05c00', text:'#6b3d00' },
+  purple: { label:'P&D',         bg:'#f0eafa', border:'#6b3a9e', text:'#4a2870' },
+  red:    { label:'RH',          bg:'#fbeaea', border:'#a02020', text:'#6e1515' },
+};
+
+function setStatus(state, msg) {
+  document.getElementById('save-dot').className = 'save-dot ' + state;
+  document.getElementById('save-label').textContent = msg;
+}
+
+function loadFromSheets() {
+  return new Promise((resolve) => {
+    showLoading('Carregando organograma...');
+    const cbName = 'jsonpCb_' + Date.now();
+    const script = document.createElement('script');
+    let done = false;
+
+    window[cbName] = function(data) {
+      done = true;
+      delete window[cbName];
+      document.body.removeChild(script);
+      if (Array.isArray(data) && data.length > 0) {
+        nodes = data.map(r => ({
+          id: Number(r.id),
+          nome: String(r.nome),
+          cargo: String(r.cargo),
+          parent: r.parent === '' || r.parent === null || r.parent === undefined ? null : Number(r.parent),
+          color: r.color || 'slate'
+        }));
+        nextId = Math.max(...nodes.map(n=>n.id)) + 1;
+      } else {
+        nodes = getDefaultNodes();
+        nextId = nodes.length + 1;
+        saveToSheets();
+      }
+      setStatus('saved', 'Sincronizado');
+      hideLoading();
+      refresh();
+      setTimeout(zoomReset, 80);
+      resolve();
+    };
+
+    script.onerror = function() {
+      if (done) return;
+      delete window[cbName];
+      document.body.removeChild(script);
+      setStatus('error', 'Erro ao carregar');
+      showToast('Erro ao conectar. Usando dados locais.');
+      nodes = getDefaultNodes();
+      nextId = nodes.length + 1;
+      hideLoading();
+      refresh();
+      setTimeout(zoomReset, 80);
+      resolve();
+    };
+
+    script.src = SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+    document.body.appendChild(script);
+
+    setTimeout(() => {
+      if (!done) script.onerror();
+    }, 10000);
+  });
+}
+
+function saveToSheets() {
+  setStatus('saving', 'Salvando...');
+  return new Promise((resolve) => {
+    const cbName = 'jsonpSave_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = iframe.name = cbName;
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'data';
+    input.value = JSON.stringify(nodes);
+    form.appendChild(input);
+
+    iframe.onload = function() {
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        document.body.removeChild(form);
+      }, 1000);
+      setStatus('saved', 'Salvo');
+      setTimeout(()=>setStatus('saved','Sincronizado'), 2000);
+      resolve();
+    };
+
+    document.body.appendChild(form);
+    form.submit();
+  });
+}
+
+function getDefaultNodes() {
+  return [
+    {id:1,  nome:'Diretoria',       cargo:'Direção Executiva',          parent:null, color:'slate'},
+    {id:2,  nome:'Comercial',       cargo:'Gerência Comercial',         parent:1,    color:'blue'},
+    {id:3,  nome:'Marketing',       cargo:'Gerência de Marketing',      parent:1,    color:'green'},
+    {id:4,  nome:'Operações',       cargo:'Gerência de Operações',      parent:1,    color:'teal'},
+    {id:5,  nome:'Financeiro',      cargo:'Gerência Financeira',        parent:1,    color:'amber'},
+    {id:6,  nome:'P&D',            cargo:'Pesquisa e Desenvolvimento',  parent:1,    color:'purple'},
+    {id:7,  nome:'Vendas Internas', cargo:'Coordenador',                parent:2,    color:'blue'},
+    {id:8,  nome:'Vendas Externas', cargo:'Coordenador',                parent:2,    color:'blue'},
+    {id:9,  nome:'Conteúdo',        cargo:'Analista',                   parent:3,    color:'green'},
+    {id:10, nome:'Design',          cargo:'Analista',                   parent:3,    color:'green'},
+    {id:11, nome:'Produção',        cargo:'Supervisor',                 parent:4,    color:'teal'},
+    {id:12, nome:'Logística',       cargo:'Supervisor',                 parent:4,    color:'teal'},
+    {id:13, nome:'Controladoria',   cargo:'Analista',                   parent:5,    color:'amber'},
+    {id:14, nome:'Laboratório',     cargo:'Pesquisador Sênior',         parent:6,    color:'purple'},
+  ];
+}
+
+function showLoading(msg) {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-overlay').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+let currentView = 'tree', editingId = null;
+let svgScale = 1, svgX = 0, svgY = 0;
+let isPanning = false, startX = 0, startY = 0, startSvgX = 0, startSvgY = 0;
+let searchTerm = '';
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById('btn-tree').classList.toggle('active', v==='tree');
+  document.getElementById('btn-list').classList.toggle('active', v==='list');
+  document.getElementById('tree-view').style.display = v==='tree' ? 'block' : 'none';
+  document.getElementById('list-view').style.display = v==='list' ? 'block' : 'none';
+  refresh();
+}
+
+function renderStats() {
+  const areas = [...new Set(nodes.map(n=>n.color))].length;
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><div class="stat-val">${nodes.length}</div><div class="stat-lbl">Colaboradores</div></div>
+    <div class="stat"><div class="stat-val">${areas}</div><div class="stat-lbl">Áreas</div></div>
+    <div class="stat"><div class="stat-val">${nodes.filter(n=>!n.parent).length}</div><div class="stat-lbl">Liderança topo</div></div>`;
+}
+
+function renderLegend() {
+  const used = [...new Set(nodes.map(n=>n.color))];
+  document.getElementById('legend').innerHTML = used.map(c=>
+    `<div class="legend-item"><div class="legend-dot" style="background:${AREAS[c]?.border||'#888'}"></div>${AREAS[c]?.label||c}</div>`
+  ).join('');
+}
+
+const BOX_W=140, BOX_H=50, H_GAP=24, V_GAP=60;
+
+function buildTree(pid) {
+  const ch = nodes.filter(n=>n.parent===pid);
+  if (!ch.length) return {nodes:[],w:BOX_W};
+  let tw=0;
+  const st = ch.map(c=>{ const s=buildTree(c.id); tw+=s.w+H_GAP; return {node:c,sub:s}; });
+  return {nodes:st, w:Math.max(tw-H_GAP, BOX_W)};
+}
+
+function layoutTree(tree, x, y) {
+  const pos=[];
+  if (!tree.nodes) return pos;
+  let cx=x-tree.w/2;
+  tree.nodes.forEach(({node,sub})=>{
+    const nx=cx+sub.w/2;
+    pos.push({id:node.id,x:nx,y,node});
+    layoutTree(sub,nx,y+BOX_H+V_GAP).forEach(p=>pos.push(p));
+    cx+=sub.w+H_GAP;
+  });
+  return pos;
+}
+
+function renderTree() {
+  const svg=document.getElementById('org-svg');
+  svg.innerHTML='';
+  const roots=nodes.filter(n=>!n.parent);
+  let allPos=[], ox=0;
+  roots.forEach(root=>{
+    const tree=buildTree(root.id);
+    const rw=tree.w+H_GAP;
+    const pos=[{id:root.id,x:ox+rw/2,y:0,node:root},...layoutTree(tree,ox+rw/2,BOX_H+V_GAP)];
+    allPos=allPos.concat(pos);
+    ox+=rw+H_GAP*2;
+  });
+  if (!allPos.length) return;
+  const minX=Math.min(...allPos.map(p=>p.x))-BOX_W/2-40;
+  const minY=Math.min(...allPos.map(p=>p.y))-40;
+  const maxX=Math.max(...allPos.map(p=>p.x))+BOX_W/2+40;
+  const maxY=Math.max(...allPos.map(p=>p.y))+BOX_H+40;
+  const W=maxX-minX, H=maxY-minY;
+  svg.setAttribute('viewBox',`${minX} ${minY} ${W} ${H}`);
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+
+  allPos.forEach(p=>{
+    if (!p.node.parent) return;
+    const par=allPos.find(q=>q.id===p.node.parent);
+    if (!par) return;
+    const mid=(par.y+BOX_H+p.y)/2;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+    line.setAttribute('d',`M${par.x},${par.y+BOX_H} C${par.x},${mid} ${p.x},${mid} ${p.x},${p.y}`);
+    line.setAttribute('fill','none'); line.setAttribute('stroke','#c8d0db'); line.setAttribute('stroke-width','1.5');
+    svg.appendChild(line);
+  });
+
+  allPos.forEach(p=>{
+    const a=AREAS[p.node.color]||AREAS.slate;
+    const isS=searchTerm&&(p.node.nome.toLowerCase().includes(searchTerm)||p.node.cargo.toLowerCase().includes(searchTerm));
+    const op=searchTerm&&!isS?'0.25':'1';
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','node-box');
+    g.setAttribute('transform',`translate(${p.x-BOX_W/2},${p.y})`);
+    g.setAttribute('opacity',op);
+    g.addEventListener('click',()=>openEditModal(p.node.id));
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('width',BOX_W); rect.setAttribute('height',BOX_H);
+    rect.setAttribute('rx','7'); rect.setAttribute('fill',a.bg);
+    rect.setAttribute('stroke',a.border); rect.setAttribute('stroke-width',isS?'2':'1');
+    const t1=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t1.setAttribute('x',BOX_W/2); t1.setAttribute('y','20'); t1.setAttribute('text-anchor','middle');
+    t1.setAttribute('font-size','12'); t1.setAttribute('font-weight','600');
+    t1.setAttribute('fill',a.text); t1.setAttribute('font-family','system-ui,sans-serif');
+    t1.textContent=trunc(p.node.nome,18);
+    const t2=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t2.setAttribute('x',BOX_W/2); t2.setAttribute('y','34'); t2.setAttribute('text-anchor','middle');
+    t2.setAttribute('font-size','10'); t2.setAttribute('fill',a.text); t2.setAttribute('opacity','0.75');
+    t2.setAttribute('font-family','system-ui,sans-serif');
+    t2.textContent=trunc(p.node.cargo,22);
+    g.appendChild(rect); g.appendChild(t1); g.appendChild(t2);
+    svg.appendChild(g);
+  });
+  setupPan(); applyTransform();
+}
+
+function trunc(s,n){ return s.length>n?s.slice(0,n-1)+'…':s; }
+
+function applyTransform() {
+  const svg=document.getElementById('org-svg');
+  svg.style.transform=`translate(${svgX}px,${svgY}px) scale(${svgScale})`;
+  svg.style.transformOrigin='0 0';
+}
+function zoomIn(){ svgScale=Math.min(svgScale*1.2,3); applyTransform(); }
+function zoomOut(){ svgScale=Math.max(svgScale/1.2,0.2); applyTransform(); }
+function zoomReset(){
+  const cont=document.getElementById('tree-container');
+  const svg=document.getElementById('org-svg');
+  const vb=svg.getAttribute('viewBox');
+  if(!vb) return;
+  const [,,W,H]=vb.split(' ').map(Number);
+  const cw=cont.clientWidth, ch=cont.clientHeight-20;
+  svgScale=Math.min(cw/W,ch/H,1)*0.95;
+  svgX=(cw-W*svgScale)/2; svgY=(ch-H*svgScale)/2;
+  applyTransform();
+}
+function setupPan(){
+  const cont=document.getElementById('tree-container');
+  cont.onmousedown=e=>{ if(e.target.closest('.node-box')) return; isPanning=true; startX=e.clientX; startY=e.clientY; startSvgX=svgX; startSvgY=svgY; };
+  cont.onmousemove=e=>{ if(!isPanning) return; svgX=startSvgX+(e.clientX-startX); svgY=startSvgY+(e.clientY-startY); applyTransform(); };
+  cont.onmouseup=cont.onmouseleave=()=>{ isPanning=false; };
+  cont.onwheel=e=>{ e.preventDefault(); const f=e.deltaY<0?1.1:0.9; const r=cont.getBoundingClientRect(); const mx=e.clientX-r.left,my=e.clientY-r.top; svgX=mx-(mx-svgX)*f; svgY=my-(my-svgY)*f; svgScale=Math.min(Math.max(svgScale*f,0.2),3); applyTransform(); };
+}
+
+function renderList(){
+  const f=searchTerm?nodes.filter(n=>n.nome.toLowerCase().includes(searchTerm)||n.cargo.toLowerCase().includes(searchTerm)):nodes;
+  const s=[...f].sort((a,b)=>(AREAS[a.color]?.label||'').localeCompare(AREAS[b.color]?.label||'')||a.nome.localeCompare(b.nome));
+  document.getElementById('list-body').innerHTML=s.map(n=>{
+    const a=AREAS[n.color]||AREAS.slate;
+    const par=nodes.find(x=>x.id===n.parent);
+    return `<tr><td><span class="color-dot" style="background:${a.border}"></span>${a.label}</td><td>${n.nome}</td><td style="color:var(--text-secondary)">${n.cargo}</td><td style="color:var(--text-secondary)">${par?par.nome:'—'}</td><td><button class="edit-btn" onclick="openEditModal(${n.id})">Editar</button></td></tr>`;
+  }).join('');
+}
+
+function openEditModal(id){
+  editingId=id;
+  const node=nodes.find(n=>n.id===id);
+  document.getElementById('modal-title').textContent='Editar colaborador';
+  document.getElementById('m-nome').value=node.nome;
+  document.getElementById('m-cargo').value=node.cargo;
+  document.getElementById('btn-delete').style.display='';
+  populateParentSelect(id);
+  document.getElementById('m-parent').value=node.parent||'';
+  populateColorSelect(node.color);
+  document.getElementById('modal').style.display='flex';
+  document.getElementById('m-nome').focus();
+}
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='Adicionar colaborador';
+  document.getElementById('m-nome').value='';
+  document.getElementById('m-cargo').value='';
+  document.getElementById('btn-delete').style.display='none';
+  populateParentSelect(null);
+  populateColorSelect('green');
+  document.getElementById('modal').style.display='flex';
+  document.getElementById('m-nome').focus();
+}
+function populateParentSelect(ex){
+  const sel=document.getElementById('m-parent');
+  sel.innerHTML='<option value="">— Sem superior —</option>';
+  nodes.filter(n=>n.id!==ex).forEach(n=>{ sel.innerHTML+=`<option value="${n.id}">${n.nome} · ${n.cargo}</option>`; });
+}
+function populateColorSelect(sel){
+  document.getElementById('m-color').innerHTML=Object.entries(AREAS).map(([k,v])=>`<option value="${k}" ${k===sel?'selected':''}>${v.label}</option>`).join('');
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+async function saveNode(){
+  const nome=document.getElementById('m-nome').value.trim();
+  const cargo=document.getElementById('m-cargo').value.trim();
+  const pv=document.getElementById('m-parent').value;
+  const color=document.getElementById('m-color').value;
+  if(!nome){ document.getElementById('m-nome').focus(); return; }
+  const parentId=pv?parseInt(pv):null;
+  if(editingId){ const n=nodes.find(x=>x.id===editingId); n.nome=nome; n.cargo=cargo; n.parent=parentId; n.color=color; }
+  else { nodes.push({id:nextId++,nome,cargo,parent:parentId,color}); }
+  closeModal(); refresh();
+  await saveToSheets();
+  showToast('Salvo com sucesso.');
+}
+async function deleteNode(){
+  if(!editingId) return;
+  if(nodes.some(n=>n.parent===editingId)){ showToast('Remova os subordinados primeiro.'); return; }
+  nodes=nodes.filter(n=>n.id!==editingId);
+  closeModal(); refresh();
+  await saveToSheets();
+  showToast('Colaborador removido.');
+}
+
+function doSearch(v){ searchTerm=v.trim().toLowerCase(); refresh(); }
+
+function exportCSV(){
+  const rows=[['ID','Nome','Cargo','Reporta Para','Área']];
+  nodes.forEach(n=>{ const b=nodes.find(x=>x.id===n.parent); rows.push([n.id,n.nome,n.cargo,b?b.nome:'',AREAS[n.color]?.label||'']); });
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='organograma_fertminas.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('CSV exportado.');
+}
+
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+function refresh(){ renderStats(); renderLegend(); if(currentView==='tree') renderTree(); else renderList(); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+  if(document.getElementById('modal').style.display==='flex') return;
+  if(e.key==='+'||e.key==='=') zoomIn();
+  if(e.key==='-') zoomOut();
+  if(e.key==='0') zoomReset();
+});
+</script>
+</body>
+</html>
